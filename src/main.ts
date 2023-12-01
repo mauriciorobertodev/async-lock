@@ -1,24 +1,18 @@
-import AsyncLock from 'async-lock';
-var lock = new AsyncLock();
+import StudioState from "./studio-state";
 
+(function run() {
+	const promises : Promise<any>[] = [];
 
-const secondsPerOperation = 1;
-const totalOfOperations = 10;
+	for (let i = 0; i < 50; i++) {
+		promises.push(
+			StudioState.getState('gameSpeed').then((value) => console.log('atual:', value)),
+	StudioState.setGameSpeed((old) => old + 1),
+		);
+	}
 
-async function operation(id: number) {
-    console.log("Execute operation %d", id);
-    lock.acquire("key1", function(done) {
-        console.log("lock %d enter", id)
-        setTimeout(function() {
-            console.log("lock %d Done", id)
-            done(null, `eu sou o retorno do lock ${id}`);
-        }, secondsPerOperation * 1000)
-    }, function(err, ret) {
-        console.log("lock %d release, return ->", id, ret);
-    }, {});
-}
+	promises.sort(() => Math.random() - 0.5)
 
-for (let i = 1; i <= totalOfOperations; i++) {
-    operation(i);
-}
+	Promise.all(promises);
+})()
+
 
